@@ -1041,6 +1041,7 @@ int open_listenfd(char *port)
     for (p = listp; p; p = p->ai_next)
     {
         /* Create a socket descriptor */
+        //  소켓 디스크립터가 만들어 지는 과정은 철저히 내부적임.
         if ((listenfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0)
             continue; /* Socket failed, try the next */
 

@@ -1,5 +1,6 @@
 #include "csapp.h"
-
+ 
+// ./echoclient localhost 8080 43435
 int main(int argc, char **argv)
 {
     int clientfd;

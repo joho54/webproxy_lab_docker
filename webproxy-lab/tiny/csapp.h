@@ -197,3 +197,47 @@ int Open_listenfd(char *port);
 
 #endif /* __CSAPP_H__ */
 /* $end csapp.h */
+
+/* colorlog.h */
+#ifndef COLORLOG_H
+#define COLORLOG_H
+#include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
+
+/* 레벨별 ANSI 컬러 */
+#define COL_INFO  "\033[32m"
+#define COL_WARN  "\033[33m"
+#define COL_ERROR "\033[31m"
+#define COL_RESET "\033[0m"
+
+/* 내부: 레벨→컬러 매핑 매크로 */
+#define LEVEL_COLOR(level)  \
+    (level == L_INFO ? COL_INFO  : \
+     level == L_WARN ? COL_WARN  : \
+     level == L_ERROR? COL_ERROR : COL_RESET)
+
+/* 열거형 레벨 */
+typedef enum { L_INFO, L_WARN, L_ERROR } log_level_t;
+
+/* 메인 매크로 */
+#define LOG(level, fmt, ...)                                                \
+    do {                                                                    \
+        struct timeval tv; gettimeofday(&tv, NULL);                         \
+        struct tm tm; localtime_r(&tv.tv_sec, &tm);                         \
+        char ts[32];                                                        \
+        strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M:%S", &tm);                 \
+        const char *col = LEVEL_COLOR(level);                               \
+        const char *lvl =                                                    \
+            level == L_INFO  ? "INFO"  :                                    \
+            level == L_WARN  ? "WARN"  : "ERROR";                           \
+        fprintf(stderr, "%s.%03ld %s[%s]%s " fmt "\n",                      \
+                ts, tv.tv_usec/1000, col, lvl, COL_RESET, ##__VA_ARGS__);   \
+    } while (0)
+
+/* 편의 매크로 */
+#define INFO(fmt, ...)  LOG(L_INFO,  fmt, ##__VA_ARGS__)
+#define WARN(fmt, ...)  LOG(L_WARN,  fmt, ##__VA_ARGS__)
+#define ERROR(fmt, ...) LOG(L_ERROR, fmt, ##__VA_ARGS__)
+
+#endif /* COLORLOG_H */

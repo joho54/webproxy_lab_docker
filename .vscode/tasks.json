@@ -147,6 +147,55 @@
                 "panel": "new"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Echo client build",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/echo && gcc -o echoclient echoclient.c csapp.c csapp.h -g -O0 -fno-omit-frame-pointer",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/webproxy-lab"
+            }
+        },
+        {
+            "label": "Echo client clean",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/echo && rm -rf echoclient",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/webproxy-lab"
+            }
+        },
+        {
+            "label": "Echo client clean-and-build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Echo client clean",
+                "Echo client build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
         }
     ]
 }
