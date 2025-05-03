@@ -1,0 +1,34 @@
+{
+    "files.associations": {
+        "socket.h": "c",
+        "struct_iovec.h": "c",
+        "csapp.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "string.h": "c",
+        "unistd.h": "c",
+        "ctype.h": "c",
+        "setjmp.h": "c",
+        "signal.h": "c",
+        "time.h": "c",
+        "types.h": "c",
+        "wait.h": "c",
+        "stat.h": "c",
+        "mman.h": "c",
+        "fcntl.h": "c",
+        "netdb.h": "c",
+        "inet.h": "c",
+        "in.h": "c",
+        "features.h": "c",
+        "semaphore.h": "c",
+        "pthread.h": "c",
+        "math.h": "c",
+        "errno.h": "c"
+    },
+    "github.copilot.enable": {
+        "*": false,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false
+    }
+}
