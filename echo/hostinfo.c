@@ -13,16 +13,20 @@ int main(int argc, char **argv)
     }
     // Get a list of addrinfo records
     memset(&hints, 0, sizeof(struct addrinfo));
-    printf("hints init: %p\n", (&hints));
-    hints.ai_family = AF_INET; // IP4 only
+
+    hints.ai_family = AF_INET6; // IPv6 only
     hints.ai_socktype = SOCK_STREAM; // Connections only
-    printf("hints.ai_family: %d\n", hints.ai_family);
-    printf("hints.ai_socktype: %d\n", hints.ai_socktype);
+
     if ((rc = getaddrinfo(argv[1], NULL, &hints, &listp)) != 0)
     {
         fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(rc));
         exit(1);
     }
+    for (p = listp; p ; p = p->ai_next)
+    {
+        printf("list elems: %p\n", p);
+    }
+    
     // walk the list and display each IP address
     flags = NI_NUMERICHOST; // Display address string instead of domain name.
     for ( p = listp; p ; p = p->ai_next)
@@ -33,5 +37,4 @@ int main(int argc, char **argv)
 
     Freeaddrinfo(listp);
     exit(0);
-    
 }

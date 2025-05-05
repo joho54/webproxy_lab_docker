@@ -31,5 +31,12 @@
         "plaintext": false,
         "markdown": false,
         "scminput": false
-    }
+    },
+    "workbench.editor.centeredLayoutAutoResize": true,
+    "editor.gotoLocation.alternativeDeclarationCommand": "editor.action.revealDefinitionAside",
+    "editor.gotoLocation.alternativeImplementationCommand": "editor.action.revealDefinitionAside",
+    "editor.gotoLocation.alternativeReferenceCommand": "editor.action.revealDefinitionAside",
+    "editor.definitionLinkOpensInPeek": false,
+    "editor.gotoLocation.alternativeTypeDefinitionCommand": "editor.action.revealDefinitionAside",
+    "editor.gotoLocation.alternativeDefinitionCommand": "editor.action.revealDefinitionAside"
 }

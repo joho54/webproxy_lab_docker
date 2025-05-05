@@ -2,6 +2,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug active file (ask flags)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build‑active‑file",
+            "MIMode": "lldb",
+            "internalConsoleOptions": "neverOpen"
+          },
+        {
             "name": "Debug Tiny Web Server",
             "type": "cppdbg",
             "request": "launch",
@@ -206,6 +216,101 @@
             "sourceFileMap": {
                 "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
             }
-        }
-    ]
+        },
+        {
+            "name": "Debug hostinfo",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/echo/hostinfo",
+            "args": [
+                "${input:hostinfoArgs}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/echo",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "hostinfo clean-and-build",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set follow-fork-mode to parent",
+                    "text": "-gdb-set follow-fork-mode parent",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Set detach-on-fork to on",
+                    "text": "-gdb-set detach-on-fork on",
+                    "ignoreFailures": false
+                }
+            ],
+            "sourceFileMap": {
+                "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
+            },
+            
+        },
+        {
+            "name": "Debug practice",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/echo/practice",
+            "args": [
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/echo",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "practice clean-and-build",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set detach-on-fork to on",
+                    "text": "-gdb-set follow-fork-mode parent", // parent or child로 설정하면 다른 흐름을 볼 수 있습니다.
+                    "ignoreFailures": false
+                }
+            ],
+            "sourceFileMap": {
+                "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
+            },
+            
+        },
+        
+        {
+            "name": "Debug prog",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/prog",   // Makefile에서 always 생성
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "make",
+            "MIMode": "gdb"  // macOS M‑시스템; gdb on Linux
+          }
+    ],
+    "inputs": [
+                    {
+                        "id": "hostinfoArgs",
+                        "type": "promptString",
+                        "description": "Enter arguments for hostinfo"
+                    }
+                ]
 }

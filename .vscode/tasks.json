@@ -196,6 +196,42 @@
                 "panel": "new"
             },
             "problemMatcher": []
-        }
-    ]
+        },
+        {
+            "label": "hostinfo clean-and-build",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/echo && rm -rf hostinfo && gcc -o hostinfo -g -O0 hostinfo.c csapp.c csapp.h",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/webproxy-lab"
+            }
+        },
+        {
+            "label": "practice clean-and-build",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/echo && rm -rf practice && gcc -o practice -g -O0 practice.c csapp.c csapp.h",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/webproxy-lab"
+            }
+        },
+    ],
+     /* 이 부분이 *반드시* tasks.json 안에 있어야 합니다 */
+  "inputs": [
+    {
+      "id": "extraFlags",
+      "type": "promptString" 
+      ,
+      "description": "추가 컴파일 플래그 입력 (-DDEBUG -O0 등)",
+      "default": "-O0"
+    }
+  ]
 }
