@@ -15,14 +15,16 @@ int parse_uri(char *uri, char *filename, char *cgiargs);
 void clienterror(int connfd, char *cause, char *errnum, char *shortmsg, char *longmsg);
 void read_requesthdrs(rio_t *rp);
 void parse_url(char *uri_pass1, char *host, char *port, char *uri);
+void *thread(void *vargp);
 
 int main(int argc, char **argv)
 {
   printf("%s", user_agent_hdr);
   char hostname[MAXLINE], port[MAXLINE], fixed_port[MAXLINE];
-  int listenfd, clientfd, connfd;
+  int listenfd, clientfd, *connfdp;
   socklen_t clientlen;
   struct sockaddr_storage clientaddr;
+  pthread_t tid;
 
   // 포트 자동 생성해야 함.33404
   // strcpy(fixed_port, "33404");
@@ -31,14 +33,27 @@ int main(int argc, char **argv)
   while (1)
   {
     clientlen = sizeof(clientaddr);
-    connfd = Accept(listenfd, (SA *)&clientaddr,
+    connfdp = Malloc(sizeof(int));
+    *connfdp = Accept(listenfd, (SA *)&clientaddr,
                     &clientlen);
     Getnameinfo((SA *)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE, 0);
-    doit(connfd);
-    Close(connfd);
+    Pthread_create(&tid, NULL, thread, connfdp);
+    // doit(*connfdp);
+    // Close(*connfdp);
   }
 
   return 0;
+}
+
+void *thread(void *vargp)
+{
+  int connfd = *((int *)vargp);
+  Pthread_detach(pthread_self());
+  // Further, we must be careful to free the memory block that was allocated by the main thread
+  Free(vargp);
+  doit(connfd); 
+  Close(connfd);
+  return NULL;
 }
 
 void doit(int connfd)
@@ -84,6 +99,10 @@ void doit(int connfd)
   printf("file name parsed: %s\n", filename);
   // 대상 서버로 요청 전달하는 부분. 에코 클라이언트 서버를 좀 참고해보자.
   clientfd = Open_clientfd(host, port);
+  if (clientfd < 0) {
+    clienterror(connfd, host, "502", "Bad Gateway", "Failed to connect to the target server");
+    return;
+  }
   printf("clientfd: %d\n", clientfd);
   
   // header 보내버리기

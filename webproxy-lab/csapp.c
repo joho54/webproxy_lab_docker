@@ -1050,8 +1050,10 @@ int Open_clientfd(char *hostname, char *port)
 {
     int rc;
 
-    if ((rc = open_clientfd(hostname, port)) < 0) 
-	unix_error("Open_clientfd error");
+    if ((rc = open_clientfd(hostname, port)) < 0) {
+        fprintf(stderr, "Open_clientfd error: failed to open client file descriptor\n");
+        return -1;
+    }
     return rc;
 }
 
