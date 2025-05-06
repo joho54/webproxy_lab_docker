@@ -223,6 +223,19 @@
                 "cwd": "${workspaceFolder}/webproxy-lab"
             }
         },
+        {
+            "label": "thread_practice clean-and-build",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/echo && rm -rf thread_practice && gcc -o thread_practice -g -O0 thread_practice.c csapp.c csapp.h",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/webproxy-lab"
+            }
+        },
     ],
      /* 이 부분이 *반드시* tasks.json 안에 있어야 합니다 */
   "inputs": [

@@ -265,6 +265,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/echo/practice",
             "args": [
+                "8080"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/echo",
@@ -286,7 +287,44 @@
                 },
                 {
                     "description": "Set detach-on-fork to on",
-                    "text": "-gdb-set follow-fork-mode parent", // parent or child로 설정하면 다른 흐름을 볼 수 있습니다.
+                    "text": "-gdb-set follow-fork-mode child", // parent or child로 설정하면 다른 흐름을 볼 수 있습니다.
+                    "ignoreFailures": false
+                }
+            ],
+            "sourceFileMap": {
+                "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
+            },
+            
+        },
+        {
+            "name": "Debug thread_practice",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/echo/thread_practice",
+            "args": [
+                "8080"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/echo",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "thread_practice clean-and-build",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set follow-fork-mode to child",
+                    "text": "-gdb-set follow-fork-mode child",
                     "ignoreFailures": false
                 }
             ],
