@@ -236,6 +236,19 @@
                 "cwd": "${workspaceFolder}/webproxy-lab"
             }
         },
+        {
+            "label": "Prethreaded Echo server clean-and-build",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/echo && rm -rf echoservert-pre && gcc -o echoservert-pre -g -O0 echoservert-pre.c csapp.c csapp.h sbuf.c sbuf.h ",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/webproxy-lab"
+            }
+        },
     ],
      /* 이 부분이 *반드시* tasks.json 안에 있어야 합니다 */
   "inputs": [

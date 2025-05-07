@@ -696,7 +696,7 @@ void Pthread_join(pthread_t tid, void **thread_return)
 {
     int rc;
 
-    if ((rc = pthread_join(tid, thread_return)) != 0)
+        if ((rc = pthread_join(tid, thread_return)) != 0)
         posix_error(rc, "Pthread_join error");
 }
 

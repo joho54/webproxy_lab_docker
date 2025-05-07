@@ -10,7 +10,7 @@
             "preLaunchTask": "build‑active‑file",
             "MIMode": "lldb",
             "internalConsoleOptions": "neverOpen"
-          },
+        },
         {
             "name": "Debug Tiny Web Server",
             "type": "cppdbg",
@@ -42,27 +42,57 @@
                     "text": "-gdb-set follow-fork-mode parent",
                     "ignoreFailures": false
                 },
-                // {
-                //     "description": "Set follow-fork-mode to child",
-                //     "text": "-gdb-set follow-fork-mode child",
-                //     "ignoreFailures": false
-                // },
                 {
                     "description": "Set detach-on-fork to on",
                     "text": "-gdb-set detach-on-fork on",
                     "ignoreFailures": false
                 },
-                
-                // {
-                //     "description": "Set detach-on-fork to off",
-                //     "text": "-gdb-set detach-on-fork off",
-                //     "ignoreFailures": false
-                // }
             ],
             "sourceFileMap": {
                 "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
             }
         },
+        {
+            "name": "Debug Prethreaded echo server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/echo/echoservert-pre",
+            "args": [
+                "8000"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/echo",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "preLaunchTask": "Prethreaded Echo server clean-and-build",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set follow-fork-mode to parent",
+                    "text": "-gdb-set follow-fork-mode parent",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Set detach-on-fork to on",
+                    "text": "-gdb-set detach-on-fork on",
+                    "ignoreFailures": false
+                },
+            ],
+            "sourceFileMap": {
+                "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
+            }
+        }, 
         {
             "name": "Debug Proxy Server",
             "type": "cppdbg",
@@ -257,7 +287,6 @@
             "sourceFileMap": {
                 "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
             },
-            
         },
         {
             "name": "Debug practice",
@@ -265,7 +294,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/echo/practice",
             "args": [
-                "8080"
+                // "8080",
+                "4"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/echo",
@@ -287,14 +317,13 @@
                 },
                 {
                     "description": "Set detach-on-fork to on",
-                    "text": "-gdb-set follow-fork-mode child", // parent or child로 설정하면 다른 흐름을 볼 수 있습니다.
+                    "text": "-gdb-set follow-fork-mode parent", // parent or child로 설정하면 다른 흐름을 볼 수 있습니다.
                     "ignoreFailures": false
                 }
             ],
             "sourceFileMap": {
                 "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
             },
-            
         },
         {
             "name": "Debug thread_practice",
@@ -331,24 +360,22 @@
             "sourceFileMap": {
                 "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
             },
-            
         },
-        
         {
             "name": "Debug prog",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/prog",   // Makefile에서 always 생성
+            "program": "${workspaceFolder}/prog", // Makefile에서 always 생성
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "make",
-            "MIMode": "gdb"  // macOS M‑시스템; gdb on Linux
-          }
+            "MIMode": "gdb" // macOS M‑시스템; gdb on Linux
+        }
     ],
     "inputs": [
-                    {
-                        "id": "hostinfoArgs",
-                        "type": "promptString",
-                        "description": "Enter arguments for hostinfo"
-                    }
-                ]
+        {
+            "id": "hostinfoArgs",
+            "type": "promptString",
+            "description": "Enter arguments for hostinfo"
+        }
+    ]
 }

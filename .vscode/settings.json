@@ -38,5 +38,6 @@
     "editor.gotoLocation.alternativeReferenceCommand": "editor.action.revealDefinitionAside",
     "editor.definitionLinkOpensInPeek": false,
     "editor.gotoLocation.alternativeTypeDefinitionCommand": "editor.action.revealDefinitionAside",
-    "editor.gotoLocation.alternativeDefinitionCommand": "editor.action.revealDefinitionAside"
+    "editor.gotoLocation.alternativeDefinitionCommand": "editor.action.revealDefinitionAside",
+    "remote.autoForwardPorts": false
 }

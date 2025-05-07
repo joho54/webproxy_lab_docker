@@ -17,6 +17,28 @@ void read_requesthdrs(rio_t *rp);
 void parse_url(char *uri_pass1, char *host, char *port, char *uri);
 void *thread(void *vargp);
 
+typedef struct {
+  char uri[MAXLINE]; // key 
+  char cache_buf[MAX_OBJECT_SIZE]; // value
+  char *cacheptr; // value pointer
+  int entry_size; // size of an entry
+  void *prev; // prev pointer
+  void *next; // next pointer
+  sem_t mutex;
+} cache_entry;
+
+typedef struct {
+  void *head; // pointer to head elem.
+  int cache_size; // total cache size. 
+} cache_list;
+
+void cache_entry_init(cache_entry *cp, int n)
+{
+    cp->cacheptr = Calloc(n, sizeof(char)); 
+    cp->entry_size = n;
+    Sem_init(&cp->mutex, 0, 1);      
+}
+
 int main(int argc, char **argv)
 {
   printf("%s", user_agent_hdr);
@@ -35,7 +57,7 @@ int main(int argc, char **argv)
     clientlen = sizeof(clientaddr);
     connfdp = Malloc(sizeof(int));
     *connfdp = Accept(listenfd, (SA *)&clientaddr,
-                    &clientlen);
+                      &clientlen);
     Getnameinfo((SA *)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE, 0);
     Pthread_create(&tid, NULL, thread, connfdp);
     // doit(*connfdp);
@@ -51,7 +73,7 @@ void *thread(void *vargp)
   Pthread_detach(pthread_self());
   // Further, we must be careful to free the memory block that was allocated by the main thread
   Free(vargp);
-  doit(connfd); 
+  doit(connfd);
   Close(connfd);
   return NULL;
 }
@@ -83,6 +105,16 @@ void doit(int connfd)
 
   parse_url(uri_pass1, host, port, uri);
 
+  if (read_cache(uri_pass1))
+  {
+    /* code */
+  }
+  else
+  {
+    /* code */
+  }
+  
+  
   if (strcasecmp(method, "GET"))
   {
     clienterror(connfd, method, "501", "Not implemented", "Tiny does not implement this method");
@@ -90,7 +122,7 @@ void doit(int connfd)
   }
   read_requesthdrs(&rio);
   is_static = parse_uri(uri, filename, cgiargs);
-  
+
   printf("\n\nmethod: %s\n", method);
   printf("host: %s\n", host);
   printf("uri: %s\n", uri);
@@ -99,51 +131,27 @@ void doit(int connfd)
   printf("file name parsed: %s\n", filename);
   // 대상 서버로 요청 전달하는 부분. 에코 클라이언트 서버를 좀 참고해보자.
   clientfd = Open_clientfd(host, port);
-  if (clientfd < 0) {
+  if (clientfd < 0)
+  {
     clienterror(connfd, host, "502", "Bad Gateway", "Failed to connect to the target server");
     return;
   }
   printf("clientfd: %d\n", clientfd);
-  
+
   // header 보내버리기
   Rio_readinitb(&rio, clientfd);
   sprintf(req_buf, "%s %s %s\r\nHost: %s\r\n%s\r\n", method, uri, "HTTP/1.0", host, user_agent_hdr);
   Rio_writen(clientfd, req_buf, strlen(req_buf));
-  
+
   // Read response from server and forward to client, handling binary data
   ssize_t n;
-  while ((n = Rio_readn(clientfd, res_buf, MAX_OBJECT_SIZE)) > 0) {
+  while ((n = Rio_readn(clientfd, res_buf, MAX_OBJECT_SIZE)) > 0)
+  {
     Rio_writen(connfd, res_buf, n);
-    if (n < MAX_OBJECT_SIZE) break; // likely end of response
+    if (n < MAX_OBJECT_SIZE)
+      break; // likely end of response
   }
-  // Rio_writen(connfd, res_buf, strlen(res_buf));
-  // Fputs(buf, stdout);
-
-  // if (is_static)
-  // {
-  //   // Finally, if the request is for static content, we verify that the file is a regular file and that we have read permission.
-  //   // 여기서 파일 존재 여부 체크 로직을 추가해야 하는 구나.
-  //   if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode))
-  //   {
-  //     clienterror(connfd, filename, "403", "Forbidden", "Tiny couldn't read the file");
-  //     return;
-  //   }
-  //   // If so, we serve the static content to the client.
-  //   // serve_static(connfd, filename, sbuf.st_size);
-  //   printf("serving static file: %s", filename);
-  // }
-  // // Similarly, if the request is for dynamic content, we verify that the file is executable, and, if so, we go ahead and serve the dynamic content.
-  // else
-  // {
-  //   // 마찬가지.
-  //   if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode))
-  //   {
-  //     clienterror(connfd, filename, "403", "Forbidden", "Tiny couldn't run the CGI program");
-  //     return;
-  //   }
-  //   // serve_dynamic(connfd, filename, cgiargs);
-  //   printf("serving dynamic file: %s", filename);
-  // }
+  
 }
 
 int parse_uri(char *uri, char *filename, char *cgiargs)
@@ -230,10 +238,13 @@ void parse_url(char *uri_pass1, char *host, char *port, char *uri)
 
   // Find the first '/' after host
   uribegin = strchr(hostbegin, '/');
-  if (uribegin) {
+  if (uribegin)
+  {
     strcpy(uri, uribegin);
     hostend = uribegin;
-  } else {
+  }
+  else
+  {
     uri[0] = '/';
     uri[1] = '\0';
     hostend = hostbegin + strlen(hostbegin);
@@ -241,7 +252,8 @@ void parse_url(char *uri_pass1, char *host, char *port, char *uri)
 
   // Look for port
   portbegin = strchr(hostbegin, ':');
-  if (portbegin && portbegin < hostend) {
+  if (portbegin && portbegin < hostend)
+  {
     hostlen = portbegin - hostbegin;
     strncpy(host, hostbegin, hostlen);
     host[hostlen] = '\0';
@@ -249,7 +261,9 @@ void parse_url(char *uri_pass1, char *host, char *port, char *uri)
     int portlen = hostend - portbegin;
     strncpy(port, portbegin, portlen);
     port[portlen] = '\0';
-  } else {
+  }
+  else
+  {
     hostlen = hostend - hostbegin;
     strncpy(host, hostbegin, hostlen);
     host[hostlen] = '\0';
