@@ -10,34 +10,32 @@ static const char *user_agent_hdr =
     "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:10.0.3) Gecko/20120305 "
     "Firefox/10.0.3\r\n";
 
+typedef struct
+{
+  char uri[MAXLINE];               // key
+  char cache_buf[MAX_OBJECT_SIZE]; // value
+  int entry_size;                  // size of an entry
+  void *prev;                      // prev pointer
+  void *next;                      // next pointer
+  sem_t mutex;
+} cache_entry;
+
+typedef struct
+{
+  void *head;     // pointer to head elem.
+  int cache_size; // total cache size.
+} cache_list;
+
 void parse(int connfd);
 int parse_uri(char *uri, char *filename, char *cgiargs);
 void clienterror(int connfd, char *cause, char *errnum, char *shortmsg, char *longmsg);
 void read_requesthdrs(rio_t *rp);
 void parse_url(char *uri_pass1, char *host, char *port, char *uri);
 void *thread(void *vargp);
+int read_cache(char *key_uri, cache_entry *rcp);
+int insert_cache(char *uri, char *res_buf, int cache_size);
 
-typedef struct {
-  char uri[MAXLINE]; // key 
-  char cache_buf[MAX_OBJECT_SIZE]; // value
-  char *cacheptr; // value pointer
-  int entry_size; // size of an entry
-  void *prev; // prev pointer
-  void *next; // next pointer
-  sem_t mutex;
-} cache_entry;
-
-typedef struct {
-  void *head; // pointer to head elem.
-  int cache_size; // total cache size. 
-} cache_list;
-
-void cache_entry_init(cache_entry *cp, int n)
-{
-    cp->cacheptr = Calloc(n, sizeof(char)); 
-    cp->entry_size = n;
-    Sem_init(&cp->mutex, 0, 1);      
-}
+static cache_list *cl;
 
 int main(int argc, char **argv)
 {
@@ -48,9 +46,11 @@ int main(int argc, char **argv)
   struct sockaddr_storage clientaddr;
   pthread_t tid;
 
-  // 포트 자동 생성해야 함.33404
-  // strcpy(fixed_port, "33404");
-  // printf("\nfixed_port: %s\n", fixed_port);
+  // cache 리스트 초기화
+  cl = Malloc(sizeof(cache_list));
+  cl->head = NULL;
+  cl->cache_size = 0;
+
   listenfd = Open_listenfd(argv[1]);
   while (1)
   {
@@ -60,8 +60,6 @@ int main(int argc, char **argv)
                       &clientlen);
     Getnameinfo((SA *)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE, 0);
     Pthread_create(&tid, NULL, thread, connfdp);
-    // doit(*connfdp);
-    // Close(*connfdp);
   }
 
   return 0;
@@ -85,6 +83,7 @@ void doit(int connfd)
       uri_pass1[MAXLINE], host[MAXLINE], uri[MAXLINE], port[MAXLINE],
       version[MAXLINE];
   char filename[MAXLINE], cgiargs[MAXLINE];
+  cache_entry *rcp = Malloc(sizeof(cache_entry));
   char *delim;
   struct stat sbuf;
   rio_t rio;
@@ -105,53 +104,106 @@ void doit(int connfd)
 
   parse_url(uri_pass1, host, port, uri);
 
-  if (read_cache(uri_pass1))
+  if (read_cache(uri_pass1, rcp))
   {
-    /* code */
+    printf("cache HIT!\n");
+    Rio_writen(connfd, rcp->cache_buf, rcp->entry_size);
+    Free(rcp);
   }
-  else
+  else // cache miss
   {
-    /* code */
-  }
-  
-  
-  if (strcasecmp(method, "GET"))
-  {
-    clienterror(connfd, method, "501", "Not implemented", "Tiny does not implement this method");
-    return;
-  }
-  read_requesthdrs(&rio);
-  is_static = parse_uri(uri, filename, cgiargs);
+    printf("cache MISS!\n");
 
-  printf("\n\nmethod: %s\n", method);
-  printf("host: %s\n", host);
-  printf("uri: %s\n", uri);
-  printf("port: %s\n", port);
-  printf("version: %s\n", version);
-  printf("file name parsed: %s\n", filename);
-  // 대상 서버로 요청 전달하는 부분. 에코 클라이언트 서버를 좀 참고해보자.
-  clientfd = Open_clientfd(host, port);
-  if (clientfd < 0)
-  {
-    clienterror(connfd, host, "502", "Bad Gateway", "Failed to connect to the target server");
-    return;
-  }
-  printf("clientfd: %d\n", clientfd);
+    if (strcasecmp(method, "GET"))
+    {
+      clienterror(connfd, method, "501", "Not implemented", "Tiny does not implement this method");
+      return;
+    }
+    read_requesthdrs(&rio);
+    is_static = parse_uri(uri, filename, cgiargs);
 
-  // header 보내버리기
-  Rio_readinitb(&rio, clientfd);
-  sprintf(req_buf, "%s %s %s\r\nHost: %s\r\n%s\r\n", method, uri, "HTTP/1.0", host, user_agent_hdr);
-  Rio_writen(clientfd, req_buf, strlen(req_buf));
+    printf("\n\nmethod: %s\n", method);
+    printf("host: %s\n", host);
+    printf("uri: %s\n", uri);
+    printf("port: %s\n", port);
+    printf("version: %s\n", version);
+    printf("file name parsed: %s\n", filename);
+    // 대상 서버로 요청 전달하는 부분. 에코 클라이언트 서버를 좀 참고해보자.
+    clientfd = Open_clientfd(host, port);
+    if (clientfd < 0)
+    {
+      clienterror(connfd, host, "502", "Bad Gateway", "Failed to connect to the target server");
+      return;
+    }
+    printf("clientfd: %d\n", clientfd);
 
-  // Read response from server and forward to client, handling binary data
-  ssize_t n;
-  while ((n = Rio_readn(clientfd, res_buf, MAX_OBJECT_SIZE)) > 0)
-  {
+    // header 보내버리기
+    Rio_readinitb(&rio, clientfd);
+    sprintf(req_buf, "%s %s %s\r\nHost: %s\r\n%s\r\n", method, uri, "HTTP/1.0", host, user_agent_hdr);
+    Rio_writen(clientfd, req_buf, strlen(req_buf));
+
+    // Read response from server and forward to client, handling binary data
+    ssize_t n;
+    // first we read it and determine what to do
+    int is_caching = ((n = Rio_readn(clientfd, res_buf, MAX_OBJECT_SIZE)) < MAX_OBJECT_SIZE);
+
+    // whatever the size is, we flush it out first.
+    char cache_tmp[MAX_OBJECT_SIZE];
+    strncpy(cache_tmp, res_buf, MAX_OBJECT_SIZE - 1);
+    cache_tmp[MAX_OBJECT_SIZE - 1] = '\0';
+
     Rio_writen(connfd, res_buf, n);
-    if (n < MAX_OBJECT_SIZE)
-      break; // likely end of response
+
+    if (is_caching)
+    {
+      insert_cache(uri_pass1, cache_tmp, n);
+    }
+    else // else read until end
+    {
+      while ((n = Rio_readn(clientfd, res_buf, MAX_OBJECT_SIZE)) > 0)
+      {
+        Rio_writen(connfd, res_buf, n);
+        if (n < MAX_OBJECT_SIZE)
+          break; // likely end of response
+      }
+    }
   }
-  
+}
+
+int read_cache(char *key_uri, cache_entry *rcp)
+{
+  cache_entry *cp;
+  for (cp = cl->head; cp; cp = cp->next)
+  {
+    if (!strcmp(key_uri, cp->uri)) // found identical uri
+    {
+      memcpy(rcp, cp, sizeof(cache_entry));
+
+      // move the entry to the forward
+      return 1;
+    }
+  }
+  return 0;
+}
+
+int insert_cache(char *uri, char *res_buf, int cache_size)
+{
+  // First we insert it on head "Brute forcefully"
+  cache_entry *nc = Malloc(sizeof(cache_entry));
+  sem_init(&nc->mutex, 0, 1);
+  P(&nc->mutex);
+  strncpy(nc->uri, uri, MAXLINE - 1);
+  nc->uri[MAXLINE - 1] = '\0';
+  strncpy(nc->cache_buf, res_buf, MAXLINE - 1);
+  nc->cache_buf[MAXLINE - 1] = '\0';
+  // strcpy(nc->cache_buf, res_buf);
+  nc->entry_size = cache_size;
+  V(&nc->mutex);
+
+  nc->prev = NULL;
+  nc->next = cl->head;
+  // nc->next->prev = nc;
+  cl->head = nc;
 }
 
 int parse_uri(char *uri, char *filename, char *cgiargs)
@@ -189,6 +241,7 @@ int parse_uri(char *uri, char *filename, char *cgiargs)
     return 0;
   }
 }
+
 void clienterror(int connfd, char *cause, char *errnum, char *shortmsg, char *longmsg)
 {
   char buf[MAXLINE], body[MAXBUF];
